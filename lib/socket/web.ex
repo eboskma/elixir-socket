@@ -227,7 +227,7 @@ defmodule Socket.Web do
 
     client = mod.connect!(address, port)
     client |> Socket.packet!(:raw)
-    client |> Socket.Stream.send! [
+    client |> Socket.Stream.send!([
       "GET #{path} HTTP/1.1", "\r\n",
       "Host: #{address}:#{port}", "\r\n",
       if(origin, do: ["Origin: #{origin}", "\r\n"], else: []),
@@ -237,7 +237,7 @@ defmodule Socket.Web do
       if(protocols, do: ["Sec-WebSocket-Protocol: #{Enum.join protocols, ", "}", "\r\n"], else: []),
       if(extensions, do: ["Sec-WebSocket-Extensions: #{Enum.join extensions, ", "}", "\r\n"], else: []),
       "Sec-WebSocket-Version: 13", "\r\n",
-      "\r\n"]
+      "\r\n"])
 
     client |> Socket.packet(:http_bin)
     { :http_response, _, 101, _ } = client |> Socket.Stream.recv!(options)
@@ -449,7 +449,7 @@ defmodule Socket.Web do
     protocol   = options[:protocol]
 
     socket |> Socket.packet!(:raw)
-    socket |> Socket.Stream.send! [
+    socket |> Socket.Stream.send!([
       "HTTP/1.1 101 Switching Protocols", "\r\n",
       "Upgrade: websocket", "\r\n",
       "Connection: Upgrade", "\r\n",
@@ -457,7 +457,7 @@ defmodule Socket.Web do
       "Sec-WebSocket-Version: 13", "\r\n",
       if(extensions, do: ["Sec-WebSocket-Extensions: ", Enum.join(extensions, ", "), "\r\n"], else: []),
       if(protocol, do: ["Sec-WebSocket-Protocol: ", protocol, "\r\n"], else: []),
-      "\r\n" ]
+      "\r\n" ])
   end
 
   @doc """
@@ -865,10 +865,9 @@ defmodule Socket.Web do
   """
   @spec close(t, atom, Keyword.t) :: :ok  | {:ok, atom, binary} | { :error, error }
   def close(%W{socket: socket, version: 13, mask: mask} = self, reason, options \\ []) do
+    data = <<>>
     if reason |> is_tuple do
       { reason, data } = reason
-    else
-      data = <<>>
     end
 
     if Keyword.has_key?(options, :mask), do: mask = options[:mask]
@@ -878,8 +877,7 @@ defmodule Socket.Web do
          0              :: 3,
          opcode(:close) :: 4,
 
-         forge(mask,
-           << close_code(reason) :: 16, data :: binary >>) :: binary >>)
+         forge(mask, << close_code(reason) :: 16, data :: binary >>) :: binary >>)
 
     unless options[:wait] == false do
       do_close(self, recv(self, options), Dict.get(options, :reason?, false), options)
